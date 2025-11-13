@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nossa Lista • Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: #0f0f0f;
+            color: #00ff00;
+            min-height: 100vh;
+        }
+        
+        .terminal {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        
+        .blink {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+        }
+        
+        .profile-card {
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .profile-card:hover {
+            border-color: rgba(255, 107, 139, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .progress-bar {
+            background: #333;
+            height: 4px;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        
+        .progress {
+            background: #1DB954;
+            height: 100%;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        
+        .command-line {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .prompt {
+            color: #00ff00;
+            margin-right: 8px;
+            white-space: nowrap;
+        }
+        
+        .terminal-line {
+            display: flex;
+            align-items: center;
+            margin: 2px 0;
+        }
+        
+        .presente-img {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 8px;
+            margin-top: 8px;
+            border: 1px solid #333;
+        }
+        
+        .profile-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #333;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div id="login-screen" class="w-full max-w-2xl">
+        <div class="terminal p-6 mb-4">
+            <div class="text-green-400 text-sm mb-4">
+                <div>Bem-vindo ao Sistema de Lista de Natal</div>
+                <div>Ubuntu 22.04 LTS</div>
+            </div>
+            
+            <div id="login-output" class="mb-4 h-64 overflow-y-auto text-sm">
+                <div class="mb-2">
+                    <span class="text-green-400">guest@natal:</span>
+                    <span class="text-blue-400">~</span>
+                    <span class="text-white">$ systemctl start amor</span>
+                </div>
+                <div class="text-gray-400 mb-2">● Iniciando sistema de amor...</div>
+                <div class="text-gray-400 mb-2">● Carregando memórias românticas...</div>
+                <div class="text-gray-400 mb-2">● Preparando surpresas especiais...</div>
+                <div class="text-green-400 mb-4">✓ Sistema pronto para login</div>
+                
+                <div class="mb-2">
+                    <span class="text-green-400">natal login:</span> 
+                    <span id="login-username" class="text-white"></span>
+                    <span class="blink">_</span>
+                </div>
+            </div>
+            
+            <div class="hidden" id="password-prompt">
+                <div class="mb-2">
+                    <span class="text-green-400">Password:</span>
+                    <span id="password-dots" class="text-white"></span>
+                    <span class="blink">_</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center text-gray-500 text-sm">
+            <p>Usuários: <span class="text-green-400">gabriel</span> | <span class="text-green-400">luana</span></p>
+        </div>
+    </div>
+
+    <div id="dashboard" class="hidden max-w-6xl w-full space-y-8">
+        <div class="glass-card p-6 text-center">
+            <h1 class="text-3xl font-light text-white mb-2">Nossa Lista de Natal</h1>
+            <div class="text-white/80">
+                <span>🎄 Faltam <span id="dias-natal" class="font-semibold text-green-400">24</span> dias</span>
+                <span class="mx-4">•</span>
+                <span>👤 <span id="current-user" class="font-semibold">usuário</span></span>
+                <span class="mx-4">•</span>
+                <button onclick="fazerLogout()" class="text-red-400 hover:text-red-300 text-sm">
+                    <i class="fas fa-sign-out-alt mr-1"></i>sair
+                </button>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="profile-card p-6">
+                <div class="flex items-center space-x-4 mb-4">
+                    <img src="gabriel.png" alt="Gabriel" class="profile-image" onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80'">
+                    <div>
+                        <h2 class="text-xl font-medium text-white">Gabriel</h2>
+                        <p class="text-gray-400 text-sm">~/lista-natal</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-3">
+                    <button onclick="abrirListaPresentes('gabriel')" class="w-full bg-gray-800 hover:bg-gray-700 text-white py-3 rounded-lg font-medium transition-all duration-300 flex items-center justify-center space-x-2">
+                        <i class="fas fa-list"></i>
+                        <span>ver_lista.sh</span>
+                    </button>
+                    <button onclick="abrirAdicionarPresente('gabriel')" class="w-full bg-gray-800 hover:bg-gray-700 text-white py-3 rounded-lg font-medium transition-all duration-300 flex items-center justify-center space-x-2">
+                        <i class="fas fa-plus"></i>
+                        <span>adicionar_presente.sh</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="profile-card p-6">
+                <div class="flex items-center space-x-4 mb-4">
+                    <img src="luana.png" alt="Luana" class="profile-image" onerror="this.src='https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80'">
+                    <div>
+                        <h2 class="text-xl font-medium text-white">Luana</h2>
+                        <p class="text-gray-400 text-sm">~/lista-natal</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-3">
+                    <button onclick="abrirListaPresentes('luana')" class="w-full bg-gray-800 hover:bg-gray-700 text-white py-3 rounded-lg font-medium transition-all duration-300 flex items-center justify-center space-x-2">
+                        <i class="fas fa-list"></i>
+                        <span>ver_lista.sh</span>
+                    </button>
+                    <button onclick="abrirAdicionarPresente('luana')" class="w-full bg-gray-800 hover:bg-gray-700 text-white py-3 rounded-lg font-medium transition-all duration-300 flex items-center justify-center space-x-2">
+                        <i class="fas fa-plus"></i>
+                        <span>adicionar_presente.sh</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="terminal p-4">
+            <div class="flex justify-between items-center mb-4 text-sm">
+                <div class="text-green-400">
+                    <i class="fas fa-terminal mr-2"></i>
+                    <span>terminal@natal:~</span>
+                </div>
+                <div class="text-gray-400">
+                    <span class="mr-4">Ctrl+C: sair do player</span>
+                    <button onclick="limparTerminal()" class="text-gray-400 hover:text-white">
+                        <i class="fas fa-broom"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="terminal-content" class="h-96 overflow-y-auto text-sm font-mono" onclick="document.getElementById('terminal-content').querySelector('.blink')?.scrollIntoView()">
+                <div class="text-gray-400">Sistema de Lista de Natal v2.0 carregado.</div>
+                <div class="text-gray-400">Digite 'ajuda' para ver os comandos disponíveis.</div>
+                <div class="terminal-line">
+                    <span class="prompt">$</span>
+                    <span id="current-input" class="flex-1 text-white"></span>
+                    <span class="blink">_</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-presente" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
+        <div class="glass-card w-full max-w-md">
+            <div class="p-6 border-b border-white/10">
+                <h3 class="text-white text-lg font-medium" id="modal-titulo">Adicionar Presente</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-gray-400 text-sm block mb-2">Nome do Presente *</label>
+                        <input type="text" id="presente-nome" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white outline-none focus:border-green-400" placeholder="Ex: Fones de Ouvido">
+                    </div>
+                    <div>
+                        <label class="text-gray-400 text-sm block mb-2">Descrição (opcional)</label>
+                        <textarea id="presente-descricao" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white outline-none focus:border-green-400 h-20" placeholder="Descreva o presente..."></textarea>
+                    </div>
+                    <div>
+                        <label class="text-gray-400 text-sm block mb-2">URL da Imagem (opcional)</label>
+                        <input type="text" id="presente-imagem" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white outline-none focus:border-green-400" placeholder="https://exemplo.com/imagem.jpg">
+                    </div>
+                    <div>
+                        <label class="text-gray-400 text-sm block mb-2">Link (opcional)</label>
+                        <input type="text" id="presente-link" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white outline-none focus:border-green-400" placeholder="https://...">
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 border-t border-white/10 flex justify-end space-x-3">
+                <button onclick="fecharModalPresente()" class="px-4 py-2 text-gray-400 hover:text-white">
+                    Cancelar
+                </button>
+                <button onclick="salvarPresente()" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg font-medium">
+                    Salvar Presente
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-lista" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
+        <div class="glass-card w-full max-w-2xl">
+            <div class="p-6 border-b border-white/10">
+                <h3 class="text-white text-lg font-medium" id="lista-titulo">Lista de Presentes</h3>
+            </div>
+            <div class="p-6 max-h-96 overflow-y-auto">
+                <div id="lista-conteudo" class="space-y-3">
+                    </div>
+            </div>
+            <div class="p-6 border-t border-white/10">
+                <button onclick="fecharModalLista()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sistema de Login
+        let currentUser = '';
+        let username = '';
+        let password = '';
+        let loginStep = 'username';
+        let isDashboardActive = false; // Flag para controlar o foco do input
+
+        // (REMOVIDO: inicializarStorage() não é mais necessário)
+
+        // Contador de Natal
+        function atualizarContador() {
+            const hoje = new Date();
+            const natal = new Date(hoje.getFullYear(), 11, 25);
+            let diffTempo = natal.getTime() - hoje.getTime();
+
+            // Se o Natal já passou, calcula para o próximo ano
+            if (diffTempo < 0) {
+                 const proximoNatal = new Date(hoje.getFullYear() + 1, 11, 25);
+                 diffTempo = proximoNatal.getTime() - hoje.getTime();
+            }
+
+            const diffDias = Math.ceil(diffTempo / (1000 * 3600 * 24));
+            document.getElementById('dias-natal').textContent = diffDias > 0 ? diffDias : 0;
+        }
+        
+        // --- Listener de Teclado Global ---
+        document.addEventListener('keydown', function(e) {
+            if (isDashboardActive) {
+                // Se o dashboard está ativo, passa o controle para o handler do terminal
+                handleTerminalInput(e);
+            } else if (document.getElementById('login-screen').classList.contains('hidden')) {
+                 // Se nem o dashboard nem o login estão ativos (ex: modal aberto), não faz nada
+                 return;
+            } else {
+                // Se o dashboard não está ativo, passa o controle para o handler de login
+                handleLoginInput(e);
+            }
+        });
+
+
+        // Sistema de Login
+        function handleLoginInput(e) {
+            if (loginStep === 'username') {
+                if (e.key === 'Enter') {
+                    if (username) {
+                        loginStep = 'password';
+                        document.getElementById('login-username').textContent = username;
+                        document.getElementById('password-prompt').classList.remove('hidden');
+                        updatePasswordDisplay();
+                    }
+                } else if (e.key === 'Backspace') {
+                    username = username.slice(0, -1);
+                    document.getElementById('login-username').textContent = username;
+                } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) { // Ignora Ctrl, Alt, etc.
+                    username += e.key;
+                    document.getElementById('login-username').textContent = username;
+                }
+            } else if (loginStep === 'password') {
+                if (e.key === 'Enter') {
+                    fazerLogin();
+                } else if (e.key === 'Backspace') {
+                    password = password.slice(0, -1);
+                    updatePasswordDisplay();
+                } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+                    password += e.key;
+                    updatePasswordDisplay();
+                }
+            }
+        }
+
+        function updatePasswordDisplay() {
+            const dots = '•'.repeat(password.length);
+            document.getElementById('password-dots').textContent = dots;
+        }
+
+        function fazerLogin() {
+            const users = {
+                'gabriel': '2005',
+                'luana': '1509'
+            };
+
+            if (users[username] && users[username] === password) {
+                currentUser = username;
+                mostrarDashboard();
+            } else {
+                adicionarLinhaLogin('<span class="text-red-400">Login incorreto</span>');
+                resetLogin(); // Reseta para o prompt de username
+                // Adiciona um novo prompt de login
+                 adicionarLinhaLogin(`
+                    <div class="mb-2">
+                        <span class="text-green-400">natal login:</span> 
+                        <span id="login-username" class="text-white"></span>
+                        <span class="blink">_</span>
+                    </div>
+                 `);
+            }
+        }
+
+        function adicionarLinhaLogin(html) {
+            const output = document.getElementById('login-output');
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight; // Rola para o final
+        }
+
+        function resetLogin() {
+            username = '';
+            password = '';
+            loginStep = 'username';
+            
+            // Remove o prompt de senha
+            document.getElementById('password-prompt').classList.add('hidden');
+            document.getElementById('password-dots').textContent = '';
+
+            // Finaliza a linha de login anterior
+            const loginLines = document.getElementById('login-output').querySelectorAll('#login-username');
+            if(loginLines.length > 0) {
+                const lastLoginLine = loginLines[loginLines.length - 1];
+                lastLoginLine.id = ''; // Remove o ID para não ser pego de novo
+                const blinker = lastLoginLine.parentElement.querySelector('.blink');
+                if (blinker) blinker.remove();
+            }
+        }
+
+        function mostrarDashboard() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('current-user').textContent = currentUser;
+            isDashboardActive = true; // Ativa o handler do terminal
+        }
+
+        function fazerLogout() {
+            currentUser = '';
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            isDashboardActive = false; // Desativa o handler do terminal
+            
+            // Recria o output de login
+            document.getElementById('login-output').innerHTML = `
+                <div class="mb-2">
+                    <span class="text-green-400">guest@natal:</span>
+                    <span class="text-blue-400">~</span>
+                    <span class="text-white">$ systemctl start amor</span>
+                </div>
+                <div class="text-gray-400 mb-2">● Iniciando sistema de amor...</div>
+                <div class="text-gray-400 mb-2">● Carregando memórias românticas...</div>
+                <div class="text-gray-400 mb-2">● Preparando surpresas especiais...</div>
+                <div class="text-green-400 mb-4">✓ Sistema pronto para login</div>
+                <div class="mb-2">
+                    <span class="text-green-400">natal login:</span> 
+                    <span id="login-username" class="text-white"></span>
+                    <span class="blink">_</span>
+                </div>
+            `;
+            resetLogin();
+            
+            // Resetar terminal do dashboard
+            document.getElementById('terminal-content').innerHTML = `
+                <div class="text-gray-400">Sistema de Lista de Natal v2.0 carregado.</div>
+                <div class="text-gray-400">Digite 'ajuda' para ver os comandos disponíveis.</div>
+                <div class="terminal-line">
+                    <span class="prompt">$</span>
+                    <span id="current-input" class="flex-1 text-white"></span>
+                    <span class="blink">_</span>
+                </div>
+            `;
+            currentInput = '';
+            commandHistory = [];
+            historyIndex = -1;
+            stopMusic(); // Para qualquer música que esteja tocando
+        }
+
+        // --- Sistema de Terminal ---
+        let currentInput = '';
+        let commandHistory = [];
+        let historyIndex = -1;
+        let isPlayingMusic = false;
+
+        function handleTerminalInput(e) {
+            // Se um modal estiver aberto, não faz nada
+            if (!document.getElementById('modal-lista').classList.contains('hidden') || 
+                !document.getElementById('modal-presente').classList.contains('hidden')) {
+                return;
+            }
+
+            // Ctrl+C para parar música
+            if (isPlayingMusic && e.ctrlKey && (e.key === 'c' || e.key === 'C')) {
+                e.preventDefault();
+                stopMusic();
+                adicionarLinhaTerminal('<span class="text-yellow-400">Player interrompido (Ctrl+C)</span>');
+                novaPrompt();
+                return;
+            }
+            
+            // Foco automático no terminal ao digitar
+            const inputElement = document.getElementById('current-input');
+            if (!inputElement) return; // Sai se o terminal não estiver pronto
+
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (currentInput.trim() === '') { // Se não houver comando, só cria nova linha
+                    finalizarLinhaAtual();
+                    novaPrompt();
+                    return;
+                }
+                
+                const commandToRun = currentInput;
+                finalizarLinhaAtual(); // Finaliza a linha ANTES de executar
+                
+                commandHistory.push(commandToRun);
+                historyIndex = commandHistory.length;
+                currentInput = '';
+                
+                executarComando(commandToRun); // Executa o comando
+                
+            } else if (e.key === 'Backspace') {
+                e.preventDefault();
+                currentInput = currentInput.slice(0, -1);
+                atualizarInputDisplay();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (commandHistory.length > 0 && historyIndex > 0) {
+                    historyIndex--;
+                    currentInput = commandHistory[historyIndex];
+                    atualizarInputDisplay();
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (commandHistory.length > 0 && historyIndex < commandHistory.length - 1) {
+                    historyIndex++;
+                    currentInput = commandHistory[historyIndex];
+                    atualizarInputDisplay();
+                } else {
+                    currentInput = '';
+                    historyIndex = commandHistory.length;
+                }
+                atualizarInputDisplay();
+            } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault(); // Previne que a tecla seja digitada em outro lugar
+                currentInput += e.key;
+                atualizarInputDisplay();
+            }
+        }
+        
+        function finalizarLinhaAtual() {
+            const terminalContent = document.getElementById('terminal-content');
+            const currentLine = terminalContent.querySelector('.terminal-line:last-child');
+            if (!currentLine) return;
+
+            const blinker = currentLine.querySelector('.blink');
+            if (blinker) blinker.remove();
+
+            const inputSpan = currentLine.querySelector('#current-input');
+            if (inputSpan) {
+                inputSpan.id = ''; // Remove o ID para não ser mais o "input atual"
+                inputSpan.textContent = currentInput; // Garante que o texto final está lá
+            }
+        }
+
+
+        function atualizarInputDisplay() {
+            const inputElement = document.getElementById('current-input');
+            if (inputElement) {
+                inputElement.textContent = currentInput;
+                // Garante que o cursor esteja visível
+                inputElement.parentElement.scrollIntoView({ block: 'end' });
+            }
+        }
+
+        function adicionarLinhaTerminal(html) {
+            const terminalContent = document.getElementById('terminal-content');
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            terminalContent.appendChild(div);
+            terminalContent.scrollTop = terminalContent.scrollHeight;
+        }
+
+        function novaPrompt() {
+            adicionarLinhaTerminal(`
+                <div class="terminal-line">
+                    <span class="prompt">$</span>
+                    <span id="current-input" class="flex-1 text-white"></span>
+                    <span class="blink">_</span>
+                </div>
+            `);
+            currentInput = '';
+            atualizarInputDisplay();
+            isPlayingMusic = false; // Reseta o estado da música (a menos que 'play' seja chamado)
+        }
+
+        function limparTerminal() {
+            document.getElementById('terminal-content').innerHTML = ''; // Limpa tudo
+            novaPrompt(); // Adiciona um novo prompt
+        }
+
+        // --- Sistema de Música (sem alteração) ---
+        let audioPlayer = null;
+        let musicInterval = null;
+
+        const musicLibrary = {
+            'joji': {
+                title: 'Joji - Past Won\'t Leave My Bed',
+                file: 'Joji-PastWontLeaveMyBed.mp3',
+                duration: 180 // Duração em segundos (aprox)
+            },
+            'pixel': {
+                title: 'PIXELATED KISSES',
+                file: 'PIXELATEDKISSES.mp3', 
+                duration: 200 // Duração em segundos (aprox)
+            }
+        };
+
+        function playMusic(songName) {
+            stopMusic(); // Para qualquer música anterior
+
+            const songKey = Object.keys(musicLibrary).find(key => 
+                key.includes(songName.toLowerCase())
+            );
+
+            if (!songKey) {
+                adicionarLinhaTerminal(`<span class="text-red-400">Música não encontrada: ${songName}</span>`);
+                adicionarLinhaTerminal('<span class="text-gray-400">Músicas disponíveis: joji, pixel</span>');
+                novaPrompt(); // Adiciona novo prompt se a música falhar
+                return;
+            }
+
+            const song = musicLibrary[songKey];
+            isPlayingMusic = true;
+            audioPlayer = new Audio(song.file);
+            
+             audioPlayer.onloadedmetadata = () => {
+                 song.duration = audioPlayer.duration; // Atualiza a duração real
+                 mostrarPlayer(song); // Mostra o player com a duração correta
+                 atualizarPlayerProgress(0, song.duration); // Seta progresso inicial
+             };
+
+            audioPlayer.play().catch(e => {
+                adicionarLinhaTerminal(`<span class="text-red-400">Erro ao reproduzir: ${e.message}</span>`);
+                adicionarLinhaTerminal('<span class="text-gray-400">Verifique se o arquivo de música <span class="text-white">${song.file}</span> existe na pasta.</span>');
+                stopMusic(); // Limpa
+                novaPrompt();
+            });
+
+            audioPlayer.onended = function() {
+                stopMusic();
+                adicionarLinhaTerminal('<span class="text-green-400">🎵 Música finalizada</span>');
+                novaPrompt();
+            };
+            
+            audioPlayer.onerror = function() {
+                 adicionarLinhaTerminal(`<span class="text-red-400">Erro ao carregar o arquivo: ${song.file}</span>`);
+                 stopMusic();
+                 novaPrompt();
+            };
+
+            musicInterval = setInterval(() => {
+                if (audioPlayer && !audioPlayer.paused) {
+                    atualizarPlayerProgress(audioPlayer.currentTime, song.duration);
+                }
+            }, 1000);
+
+            adicionarLinhaTerminal(`<span class="text-green-400">🎵 Tocando: ${song.title}</span>`);
+        }
+        
+        function mostrarPlayer(song) {
+            const totalMinutes = Math.floor(song.duration / 60);
+            const totalSeconds = Math.floor(song.duration % 60).toString().padStart(2, '0');
+            const totalDurationStr = `${totalMinutes}:${totalSeconds}`;
+
+            const playerHTML = `
+                <div id="music-player" class="my-2">
+                    <div class="text-green-400">🎵 Tocando: <span class="text-white">${song.title}</span></div>
+                    <div class="flex items-center w-full">
+                        <span id="current-time" class="text-gray-400 w-12 text-right pr-2">0:00</span>
+                        <div class="progress-bar flex-1">
+                            <div id="music-progress" class="progress"></div>
+                        </div>
+                        <span id="total-time" class="text-gray-400 w-12 pl-2">${totalDurationStr}</span>
+                    </div>
+                    <div class="text-center text-gray-500 text-xs mt-1">Pressione Ctrl+C para sair do player</div>
+                </div>
+            `;
+            adicionarLinhaTerminal(playerHTML);
+        }
+
+        function atualizarPlayerProgress(currentTime, totalDuration) {
+            if(totalDuration === 0 || isNaN(totalDuration)) return; // Evita divisão por zero
+
+            const progress = (currentTime / totalDuration) * 100;
+            const progressBar = document.getElementById('music-progress');
+            const currentTimeEl = document.getElementById('current-time');
+            
+            if (progressBar) {
+                progressBar.style.width = `${progress}%`;
+            }
+            
+            if (currentTimeEl) {
+                const minutes = Math.floor(currentTime / 60);
+                const seconds = Math.floor(currentTime % 60);
+                currentTimeEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+
+        function stopMusic() {
+            if (audioPlayer) {
+                audioPlayer.pause();
+                audioPlayer.src = ""; // Libera o recurso
+                audioPlayer = null;
+            }
+            if (musicInterval) {
+                clearInterval(musicInterval);
+                musicInterval = null;
+            }
+            
+            const player = document.getElementById('music-player');
+            if (player) {
+                player.remove();
+            }
+            
+            isPlayingMusic = false;
+        }
+
+        function pauseMusic() {
+            if (audioPlayer && !audioPlayer.paused) {
+                audioPlayer.pause();
+                return true;
+            }
+            return false;
+        }
+
+        function resumeMusic() {
+            if (audioPlayer && audioPlayer.paused) {
+                audioPlayer.play();
+                return true;
+            }
+            return false;
+        }
+
+        // --- Sistema de Comandos (com `lista` ATUALIZADO) ---
+        function executarComando(comando) {
+            const parts = comando.toLowerCase().split(' ');
+            const cmd = parts[0];
+            const args = parts.slice(1);
+            
+            switch(cmd) {
+                case 'ajuda':
+                case 'help':
+                    mostrarAjuda();
+                    break;
+                    
+                case 'limpar':
+                case 'clear':
+                    limparTerminal();
+                    return; // limparTerminal já chama novaPrompt
+                    
+                case 'amor':
+                    mostrarMensagemAmor();
+                    break;
+                    
+                case 'lista':
+                    mostrarListasComando(); // Esta função agora é async
+                    return; // Retorna para esperar a busca na rede
+                    
+                case 'musica':
+                    mostrarMusicas();
+                    break;
+                    
+                case 'data':
+                    mostrarData();
+                    break;
+                    
+                case 'whoami':
+                    adicionarLinhaTerminal(`<span class="text-white">${currentUser}</span>`);
+                    break;
+                    
+                case 'play':
+                    if (args.length > 0) {
+                        playMusic(args.join(' '));
+                        return; // Não adiciona nova prompt imediatamente
+                    } else {
+                        adicionarLinhaTerminal('<span class="text-red-400">Uso: play [nome-da-música]</span>');
+                        adicionarLinhaTerminal('<span class="text-gray-400">Músicas disponíveis: joji, pixel</span>');
+                    }
+                    break;
+                    
+                case 'stop':
+                    if (isPlayingMusic) {
+                        stopMusic();
+                        adicionarLinhaTerminal('<span class="text-yellow-400">⏹️ Música parada</span>');
+                    } else {
+                         adicionarLinhaTerminal('<span class="text-gray-400">Nenhuma música tocando.</span>');
+                    }
+                    break;
+                    
+                case 'pause':
+                    if (isPlayingMusic) {
+                        if (pauseMusic()) {
+                            adicionarLinhaTerminal('<span class="text-yellow-400">⏸️ Música pausada</span>');
+                        } else {
+                             adicionarLinhaTerminal('<span class="text-gray-400">Música já está pausada.</span>');
+                        }
+                    } else {
+                         adicionarLinhaTerminal('<span class="text-gray-400">Nenhuma música tocando.</span>');
+                    }
+                    break;
+                    
+                case 'resume':
+                    if (isPlayingMusic) {
+                        if (resumeMusic()) {
+                            adicionarLinhaTerminal('<span class="text-green-400">▶️ Música retomada</span>');
+                        } else {
+                            adicionarLinhaTerminal('<span class="text-gray-400">Música já está tocando.</span>');
+                        }
+                    } else {
+                         adicionarLinhaTerminal('<span class="text-gray-400">Nenhuma música tocando.</span>');
+                    }
+                    break;
+                    
+                default:
+                    adicionarLinhaTerminal(`<span class="text-red-400">Comando não encontrado: ${cmd}</span>`);
+                    adicionarLinhaTerminal('<span class="text-gray-400">Digite "ajuda" para ver os comandos disponíveis</span>');
+            }
+            
+            if (!isPlayingMusic) {
+                novaPrompt();
+            }
+        }
+
+        function mostrarAjuda() {
+            const ajuda = `
+<div class="text-green-400 mb-2">Comandos disponíveis:</div>
+<div class="space-y-1">
+    <div class="flex">
+        <span class="text-yellow-400 w-32">ajuda</span>
+        <span class="text-gray-300">- Mostra esta mensagem</span>
+    </div>
+    <div class="flex">
+        <span class="text-yellow-400 w-32">limpar</span>
+        <span class="text-gray-300">- Limpa o terminal</span>
+    </div>
+    <div class="flex">
+        <span class="text-yellow-400 w-32">amor</span>
+        <span class="text-gray-300">- Mensagem especial</span>
+    </div>
+    <div class="flex">
+        <span class="text-yellow-400 w-32">lista</span>
+        <span class="text-gray-300">- Mostrar listas de presentes</span>
+    </div>
+    <div class="flex">
+        <span class="text-yellow-400 w-32">musica</span>
+        <span class="text-gray-300">- Nossa playlist</span>
+    </div>
+    <div class="flex">
+        <span class="text-yellow-400 w-32">data</span>
+        <span class="text-gray-300">- Dias até o Natal</span>
+    </div>
+    <div class="flex">
+        <span class="text-yellow-400 w-32">whoami</span>
+        <span class="text-gray-300">- Mostrar usuário atual</span>
+    </div>
+    <div class="flex">
+        <span class="text-yellow-400 w-32">play [música]</span>
+        <span class="text-gray-300">- Tocar música (joji, pixel)</span>
+    </div>
+    <div class="flex">
+        <span class="text-yellow-400 w-32">pause</span>
+        <span class="text-gray-300">- Pausar música</span>
+    </div>
+    <div class="flex">
+        <span class="text-yellow-400 w-32">resume</span>
+        <span class="text-gray-300">- Retomar música</span>
+    </div>
+    <div class="flex">
+        <span class="text-yellow-400 w-32">stop</span>
+        <span class="text-gray-300">- Parar música</span>
+    </div>
+    <div class="flex">
+        <span class="text-yellow-400 w-32">Ctrl+C</span>
+        <span class="text-gray-300">- Sair do player atual</span>
+    </div>
+</div>
+            `;
+            adicionarLinhaTerminal(ajuda);
+        }
+
+
+        function mostrarMensagemAmor() {
+            const mensagem = currentUser === 'gabriel' 
+                ? `💖 Para minha Luana:\n\nVocê é a luz dos meus dias!\nTe amo mais que tudo! 💝`
+                : `✨ Para meu Gabriel:\n\nVocê é meu herói!\nTe amo eternamente! 💫`;
+            // Usando <pre> para preservar as quebras de linha
+            adicionarLinhaTerminal(`<pre class="text-pink-400 font-mono">${mensagem}</pre>`);
+        }
+
+        // --- ATUALIZADO: mostrarListasComando (para usar o back-end) ---
+        async function mostrarListasComando() {
+            try {
+                // 1. Busca as duas listas
+                const [respGabriel, respLuana] = await Promise.all([
+                    fetch(`/.netlify/functions/get-list?pessoa=gabriel`),
+                    fetch(`/.netlify/functions/get-list?pessoa=luana`)
+                ]);
+                
+                const listaGabriel = await respGabriel.json();
+                const listaLuana = await respLuana.json();
+                
+                // 2. Monta o output
+                let output = `<span class="text-green-400">Listas de Presentes:</span>\n\n`;
+                output += `<span class="text-blue-400">Gabriel:</span> ${listaGabriel.length} itens\n`;
+                listaGabriel.forEach(p => output += `  • ${p.nome}\n`);
+                
+                output += `\n<span class="text-pink-400">Luana:</span> ${listaLuana.length} itens\n`;
+                listaLuana.forEach(p => output += `  • ${p.nome}\n`);
+                
+                adicionarLinhaTerminal(`<pre class="font-mono">${output}</pre>`);
+
+            } catch (error) {
+                 adicionarLinhaTerminal(`<span class="text-red-400">Erro ao carregar listas. Tente novamente.</span>`);
+            }
+            // Adiciona um novo prompt após a função (assíncrona) terminar
+            novaPrompt();
+        }
+
+        function mostrarMusicas() {
+             let output = `<span class="text-green-400">🎵 Nossa Playlist:</span>\n\n`;
+            Object.keys(musicLibrary).forEach((songKey, index) => {
+                const song = musicLibrary[songKey];
+                const totalMinutes = Math.floor(song.duration / 60);
+                const totalSeconds = (song.duration % 60).toString().padStart(2, '0');
+                
+                output += `<span class="text-yellow-400">${index + 1}.</span> ${song.title}\n`;
+                output += `   <span class="text-gray-400">Comando:</span> play ${songKey}\n`;
+                output += `   <span class="text-gray-400">⏱️ ${totalMinutes}:${totalSeconds}</span>\n\n`;
+            });
+            output += `<span class="text-gray-400">Use: play joji ou play pixel</span>`;
+            adicionarLinhaTerminal(`<pre class="font-mono">${output}</pre>`);
+        }
+
+        function mostrarData() {
+            const dias = document.getElementById('dias-natal').textContent;
+            adicionarLinhaTerminal(`<span class="text-green-400">🎄 Faltam ${dias} dias para o Natal!</span>`);
+        }
+
+        // --- ATUALIZADO: Sistema de Presentes (para usar o back-end) ---
+        let pessoaAtual = '';
+
+        function abrirAdicionarPresente(pessoa) {
+            pessoaAtual = pessoa;
+            document.getElementById('modal-titulo').textContent = `Adicionar Presente - ${pessoa}`;
+            document.getElementById('modal-presente').classList.remove('hidden');
+            document.getElementById('modal-presente').classList.add('flex');
+            
+            document.getElementById('presente-nome').value = '';
+            document.getElementById('presente-descricao').value = '';
+            document.getElementById('presente-imagem').value = '';
+            document.getElementById('presente-link').value = '';
+            
+            document.getElementById('presente-nome').focus();
+        }
+
+        function fecharModalPresente() {
+            document.getElementById('modal-presente').classList.add('hidden');
+            document.getElementById('modal-presente').classList.remove('flex');
+        }
+
+        // --- ATUALIZADO: abrirListaPresentes (para usar o back-end) ---
+        async function abrirListaPresentes(pessoa) {
+            pessoaAtual = pessoa;
+            document.getElementById('lista-titulo').textContent = `Lista de Presentes - ${pessoa}`;
+            
+            // SUBSTITUÍDO: Em vez de localStorage, buscamos na nossa função
+            let lista = [];
+            const container = document.getElementById('lista-conteudo');
+            container.innerHTML = '<div class="text-gray-400 text-center py-4">Carregando lista...</div>'; // Feedback
+            
+            try {
+                const response = await fetch(`/.netlify/functions/get-list?pessoa=${pessoa}`);
+                if (!response.ok) throw new Error('Falha ao carregar lista');
+                lista = await response.json();
+            } catch (error) {
+                console.error("Erro ao buscar lista:", error);
+                container.innerHTML = '<div class="text-red-400 text-center py-4">Erro ao carregar a lista. Tente novamente.</div>';
+                return; // Para a execução se der erro
+            }
+            // FIM DA SUBSTITUIÇÃO
+
+            container.innerHTML = '';
+            
+            if (lista.length === 0) {
+                container.innerHTML = '<div class="text-gray-400 text-center py-4">Nenhum presente adicionado ainda.</div>';
+            } else {
+                lista.forEach((presente, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-800 rounded-lg p-4 border border-gray-700';
+                    
+                    let linkValido = presente.link;
+                    if(linkValido && !linkValido.startsWith('http://') && !linkValido.startsWith('https://')) {
+                        linkValido = 'https://' + linkValido;
+                    }
+
+                    div.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h3 class="text-white font-medium">${presente.nome}</h3>
+                                ${presente.descricao ? `<p class="text-gray-400 text-sm mt-1">${presente.descricao}</p>` : ''}
+                                ${presente.imagem ? `<img src="${presente.imagem}" alt="${presente.nome}" class="presente-img" onerror="this.style.display='none'">` : ''}
+                                ${presente.link ? `<a href="${linkValido}" target="_blank" class="text-green-400 text-sm hover:underline block mt-2">🔗 Ver link</a>` : ''}
+                            </div>
+                            <button onclick="removerPresente('${pessoa}', ${index})" class="text-gray-400 hover:text-red-400 ml-4">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+            
+            document.getElementById('modal-lista').classList.remove('hidden');
+            document.getElementById('modal-lista').classList.add('flex');
+        }
+
+        function fecharModalLista() {
+            document.getElementById('modal-lista').classList.add('hidden');
+            document.getElementById('modal-lista').classList.remove('flex');
+        }
+
+        // --- ATUALIZADO: salvarPresente (para usar o back-end) ---
+        async function salvarPresente() {
+            const nome = document.getElementById('presente-nome').value.trim();
+            const descricao = document.getElementById('presente-descricao').value.trim();
+            const imagem = document.getElementById('presente-imagem').value.trim();
+            const link = document.getElementById('presente-link').value.trim();
+            
+            if (!nome) {
+                alert('Por favor, digite o nome do presente!');
+                return;
+            }
+            
+            try {
+                // 1. Busca a lista atual
+                const response = await fetch(`/.netlify/functions/get-list?pessoa=${pessoaAtual}`);
+                if (!response.ok) throw new Error('Falha ao carregar lista');
+                const lista = await response.json();
+
+                // 2. Adiciona o novo presente
+                lista.push({
+                    nome: nome,
+                    descricao: descricao,
+                    imagem: imagem,
+                    link: link,
+                    data: new Date().toLocaleDateString()
+                });
+
+                // 3. Salva a lista COMPLETA de volta no banco de dados
+                const saveResponse = await fetch('/.netlify/functions/save-list', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pessoa: pessoaAtual,
+                        lista: lista
+                    })
+                });
+                if (!saveResponse.ok) throw new Error('Falha ao salvar lista');
+
+                fecharModalPresente();
+                adicionarLinhaTerminal(`<span class="text-green-400">✅ Presente "${nome}" adicionado à lista de ${pessoaAtual}!</span>`);
+            
+            } catch (error) {
+                console.error("Erro ao salvar presente:", error);
+                adicionarLinhaTerminal(`<span class="text-red-400">Erro ao salvar o presente. Tente novamente.</span>`);
+            }
+            
+            if(!isPlayingMusic) novaPrompt();
+        }
+
+        // --- ATUALIZADO: removerPresente (para usar o back-end) ---
+        async function removerPresente(pessoa, index) {
+            if (confirm('Tem certeza que deseja remover este presente?')) {
+                
+                try {
+                    // 1. Busca a lista atual
+                    const response = await fetch(`/.netlify/functions/get-list?pessoa=${pessoa}`);
+                    if (!response.ok) throw new Error('Falha ao carregar lista');
+                    const lista = await response.json();
+
+                    // 2. Remove o item
+                    const presenteRemovido = lista[index].nome;
+                    lista.splice(index, 1);
+
+                    // 3. Salva a lista COMPLETA de volta
+                    const saveResponse = await fetch('/.netlify/functions/save-list', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            pessoa: pessoa,
+                            lista: lista
+                        })
+                    });
+                    if (!saveResponse.ok) throw new Error('Falha ao salvar lista');
+
+                    abrirListaPresentes(pessoa); // Atualiza a lista no modal
+                    adicionarLinhaTerminal(`<span class="text-yellow-400">🗑️ Presente "${presenteRemovido}" removido.</span>`);
+
+                } catch (error) {
+                    console.error("Erro ao remover presente:", error);
+                    adicionarLinhaTerminal(`<span class="text-red-400">Erro ao remover o presente. Tente novamente.</span>`);
+                }
+                
+                if(!isPlayingMusic) novaPrompt();
+            }
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            // (REMOVIDO: inicializarStorage() não é mais necessário)
+            atualizarContador();
+        });
+    </script>
+    </body>
+</html>

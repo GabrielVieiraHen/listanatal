@@ -1,0 +1,6 @@
+[build]
+  publish = "." # Publica a pasta raiz (onde está seu index.html)
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
